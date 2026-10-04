@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Armadio Condiviso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: wardrobe rail of hang-tag cards, category chips on top, sheet-style panels for details */
+:root{
+  --bg:#F2EFF6; --paper:#FFFFFF; --ink:#271D38; --muted:#6E6680; --line:#DCD5E6;
+  --accent:#C8285E; --accent-ink:#FFFFFF; --sage:#3E7C68; --sage-bg:#E2F0EA; --warn-bg:#FBE6EC;
+  --display:"Young Serif",Georgia,serif; --body:"Figtree",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --shadow:0 1px 2px rgba(39,29,56,.06),0 6px 18px rgba(39,29,56,.07);
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#17121F; --paper:#221B2D; --ink:#EEE8F6; --muted:#A79FB6; --line:#3A3149;
+  --accent:#F0598C; --accent-ink:#1A0F14; --sage:#7CC5AB; --sage-bg:#1E332C; --warn-bg:#3A1D28;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17121F; --paper:#221B2D; --ink:#EEE8F6; --muted:#A79FB6; --line:#3A3149;
+  --accent:#F0598C; --accent-ink:#1A0F14; --sage:#7CC5AB; --sage-bg:#1E332C; --warn-bg:#3A1D28;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25); color-scheme:dark}
+*{box-sizing:border-box}[hidden]{display:none!important}img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:20px 60px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:400;font-size:clamp(28px,5vw,40px);margin:0;line-height:1.1;text-wrap:balance}
+.brand p{margin:4px 0 0;color:var(--muted);max-width:52ch}
+.me{display:flex;align-items:center;gap:8px}
+.avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--paper);color:var(--ink);border-radius:999px;padding:8px 14px;font-weight:600}
+button:hover{border-color:var(--muted)}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.ghost{background:transparent;border-color:transparent;color:var(--muted);padding:6px 10px}
+button:disabled{opacity:.5;cursor:not-allowed}
+.bell{position:relative}
+.bell .dot{position:absolute;top:-4px;right:-4px;background:var(--accent);color:var(--accent-ink);font-size:11px;border-radius:999px;min-width:18px;height:18px;display:grid;place-items:center;padding:0 4px;font-family:var(--mono)}
+nav.tabs{display:flex;gap:4px;margin:22px 0 14px;border-bottom:1px solid var(--line);overflow-x:auto}
+nav.tabs button{border:none;background:none;border-radius:0;padding:10px 12px;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+.chip{font-weight:500;padding:6px 12px;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip .n{font-family:var(--mono);font-size:12px;opacity:.7;margin-left:4px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.toolbar h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:18px}
+/* hang tag card */
+.tag{position:relative;background:var(--paper);border-radius:6px 6px 14px 14px;box-shadow:var(--shadow);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;border:1px solid var(--line);text-align:left;padding:0;font-weight:400}
+.tag:hover{transform:translateY(-2px)}
+@media (prefers-reduced-motion:no-preference){.tag{transition:transform .15s}}
+.tag .ph{aspect-ratio:4/5;background:var(--bg);display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:12px;max-width:100%}
+.tag .ph img{width:100%;height:100%;object-fit:cover}
+.tag .hole{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:var(--bg);border:1px solid var(--line)}
+.tag .meta{padding:10px 12px 12px;display:grid;gap:4px}
+.tag .name{font-weight:600;line-height:1.3}
+.tag .row{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:13px;color:var(--muted)}
+.size{font-family:var(--mono);font-size:12px;border:1px solid var(--line);border-radius:4px;padding:1px 6px;color:var(--ink);white-space:nowrap}
+.pill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;white-space:nowrap}
+.pill.free{background:var(--sage-bg);color:var(--sage)}
+.pill.busy{background:var(--warn-bg);color:var(--accent)}
+.empty{background:var(--paper);border:1px dashed var(--line);border-radius:14px;padding:28px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:var(--display);font-weight:400;font-size:20px;margin-bottom:6px}
+.list{display:grid;gap:10px}
+.lrow{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.lrow .thumb{width:52px;height:64px;border-radius:6px;object-fit:cover;background:var(--bg);flex:none}
+.lrow .txt{flex:1;min-width:0}
+.lrow .txt b{font-weight:600}
+.lrow .sub{color:var(--muted);font-size:13px}
+.lrow.unread{border-color:var(--accent)}
+.date{font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums}
+/* sheet */
+.overlay{position:fixed;inset:0;background:rgba(20,14,30,.5);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:max(24px,env(safe-area-inset-top,0px)) 16px 24px;z-index:20}
+.sheet{background:var(--paper);border-radius:16px;width:100%;max-width:640px;box-shadow:var(--shadow);overflow:hidden}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;border-bottom:1px solid var(--line)}
+.sheet .hd h3{margin:0;font-family:var(--display);font-weight:400;font-size:20px}
+.sheet .bd{padding:18px;display:grid;gap:14px}
+.detail{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr);gap:16px}
+@media (max-width:560px){.detail{grid-template-columns:1fr}}
+.detail img{width:100%;border-radius:10px;aspect-ratio:4/5;object-fit:cover;background:var(--bg)}
+label{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:9px 11px;width:100%;font-weight:400}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.note{font-size:13px;color:var(--muted)}
+.err{background:var(--warn-bg);color:var(--accent);border-radius:10px;padding:8px 12px;font-size:14px}
+.ok{background:var(--sage-bg);color:var(--sage);border-radius:10px;padding:8px 12px;font-size:14px}
+.booked{display:flex;flex-wrap:wrap;gap:6px}
+.booked span{font-family:var(--mono);font-size:12px;background:var(--warn-bg);color:var(--accent);border-radius:6px;padding:3px 8px}
+.actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.preview{width:120px;aspect-ratio:4/5;border-radius:8px;object-fit:cover;background:var(--bg)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;z-index:30;max-width:calc(100% - 32px)}
+.copy{font-family:var(--mono);font-size:12px;user-select:all;background:var(--bg);padding:2px 6px;border-radius:4px;word-break:break-all}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <h1>Armadio Condiviso</h1>
+      <p>Carica i capi che vuoi prestare, sfoglia quelli delle amiche e prenotali almeno 24 ore prima.</p>
+    </div>
+    <div class="me" id="me"></div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs" hidden>
+    <button role="tab" data-tab="armadio" aria-selected="true">Armadio</button>
+    <button role="tab" data-tab="miei" aria-selected="false">I miei capi</button>
+    <button role="tab" data-tab="prenotazioni" aria-selected="false">Le mie prenotazioni</button>
+    <button role="tab" data-tab="notifiche" aria-selected="false">Notifiche</button>
+  </nav>
+
+  <main id="main" style="margin-top:22px">
+    <div class="empty"><strong>Apro l'armadio…</strong>Un momento.</div>
+  </main>
+</div>
+
+<div id="sheet" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>
+/* =====================================================================
+   1) INCOLLA QUI I DATI DI FIREBASE
+      (Firebase > ingranaggio > Impostazioni progetto > Le tue app > Config)
+   ===================================================================== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBquABS384s5tW0-NVwyEoIA4BPp9t-hKU",
+  authDomain: "armadio-condiviso.firebaseapp.com",
+  projectId: "armadio-condiviso",
+  storageBucket: "armadio-condiviso.firebasestorage.app",
+  messagingSenderId: "829369424083",
+  appId: "1:829369424083:web:b05f4318ff63bb06f29c26",
+  measurementId: "G-7PBCFEML0D"
+};
+
+/* =====================================================================
+   2) INCOLLA QUI I CODICI DI EMAILJS (per le email di notifica)
+   ===================================================================== */
+const EMAILJS = {
+  publicKey:  "ZqMnE7MawlRW1i3g2",
+  serviceId:  "service_kbqcs7g",
+  templateId: "template_lbed7vx"
+};
+/* ===================== da qui in giù non toccare ===================== */
+
+const CATS=[["abiti","Abiti"],["top","Top e camicie"],["maglie","Maglioni e felpe"],["pantaloni","Pantaloni e jeans"],["gonne","Gonne"],["giacche","Giacche e cappotti"],["scarpe","Scarpe"],["borse","Borse"],["accessori","Accessori e gioielli"],["altro","Altro"]];
+const CAT=Object.fromEntries(CATS);
+const S={db:null,auth:null,u:null,myId:null,items:[],bookings:[],notifs:[],people:{},photos:{},tab:"armadio",cat:"tutti",ready:false,subs:[]};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad=n=>String(n).padStart(2,"0");
+const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const today=()=>ymd(new Date());
+function minBookDate(){const t=new Date(Date.now()+24*3600e3);const d=new Date(t.getFullYear(),t.getMonth(),t.getDate());if(d<t)d.setDate(d.getDate()+1);return ymd(d)}
+const MESI=["gen","feb","mar","apr","mag","giu","lug","ago","set","ott","nov","dic"];
+const fmt=s=>{const[y,m,d]=s.split("-");return `${+d} ${MESI[+m-1]}`};
+const range=(a,b)=>a===b?fmt(a):`${fmt(a)} → ${fmt(b)}`;
+function toast(t){const el=$("#toast");el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2800)}
+const who=id=>id===S.myId?"Tu":(S.people[id]?.nick||"Un'amica");
+const mailOf=id=>S.people[id]?.mail||"";
+const configured=!JSON.stringify(firebaseConfig).includes("INCOLLA_QUI");
+const mailReady=!JSON.stringify(EMAILJS).includes("INCOLLA_QUI")&&!!window.emailjs;
+
+function upcoming(itemId){return S.bookings.filter(b=>b.itemId===itemId&&b.to>=today()).sort((a,b)=>a.from.localeCompare(b.from))}
+function busyNow(itemId){const t=today();return S.bookings.some(b=>b.itemId===itemId&&b.from<=t&&b.to>=t)}
+
+/* ---------- email ---------- */
+const BATTUTE_PREN=["Ottime notizie: il tuo armadio ha più vita sociale di te questo weekend."];
+const BATTUTE_ANN=[""];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+async function sendMail(toId,params){
+  if(!mailReady||toId===S.myId)return;
+  const to=mailOf(toId);if(!to)return;
+  try{await emailjs.send(EMAILJS.serviceId,EMAILJS.templateId,{to_email:to,to_name:S.people[toId]?.nick||"",chi:S.people[S.myId]?.nick||"Un'amica",chi_email:mailOf(S.myId),link:location.href.split("#")[0],...params})}
+  catch(e){console.warn("Email non inviata",e)}
+}
+
+/* ---------- render ---------- */
+function render(){
+  renderMe();
+  const m=$("#main");
+  if(!configured){$("#tabs").hidden=true;m.innerHTML=`<div class="empty"><strong>Manca la configurazione</strong>Apri il file index.html e incolla i dati di Firebase e di EmailJS nei punti segnati con INCOLLA_QUI.</div>`;return}
+  if(!S.u){$("#tabs").hidden=true;m.innerHTML=`<div class="empty"><strong>Benvenuta nell'armadio</strong><p style="margin:0 0 14px">Entra con il tuo account Google per vedere i capi delle amiche e caricare i tuoi.</p><button class="primary" data-act="login">Entra con Google</button><p class="note" style="margin:14px 0 0">Se hai aperto il link da WhatsApp o Instagram e il login non va, aprilo in Safari o Chrome.</p></div>`;return}
+  $("#tabs").hidden=false;
+  document.querySelectorAll("#tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.tab===S.tab));
+  if(!S.ready){m.innerHTML=`<div class="empty"><strong>Apro l'armadio…</strong>Sto caricando i capi condivisi.</div>`;return}
+  if(S.tab==="armadio")m.innerHTML=viewArmadio();
+  else if(S.tab==="miei")m.innerHTML=viewMiei();
+  else if(S.tab==="prenotazioni")m.innerHTML=viewPren();
+  else m.innerHTML=viewNotif();
+  loadPhotos();
+}
+function renderMe(){
+  if(!S.u){$("#me").innerHTML="";return}
+  const unread=S.notifs.filter(n=>!n.read).length;
+  const nick=S.people[S.myId]?.nick||"";
+  $("#me").innerHTML=`${S.u.photoURL?`<img class="avatar" src="${esc(S.u.photoURL)}" alt="" referrerpolicy="no-referrer">`:""}
+   <button class="ghost" data-act="profile">${nick?esc(nick):"Imposta il tuo nome"}</button>
+   <button class="bell" data-act="gonotif">Notifiche${unread?`<span class="dot">${unread}</span>`:""}</button>
+   <button class="primary" data-act="add">+ Carica un capo</button>
+   <button class="ghost" data-act="logout">Esci</button>`;
+}
+function card(i){
+  const busy=busyNow(i.id),nx=upcoming(i.id)[0];
+  return `<button class="tag" data-act="open" data-id="${i.id}">
+   <div class="ph" data-photo="${i.id}">${i.hasPhoto?"":"nessuna foto"}</div><span class="hole"></span>
+   <div class="meta"><span class="name">${esc(i.name)}</span>
+    <span class="row"><span>di ${esc(who(i.ownerId))}</span>${i.size?`<span class="size">${esc(i.size)}</span>`:""}</span>
+    <span class="row"><span>${esc(CAT[i.category]||"Altro")}</span>${busy?`<span class="pill busy">in prestito</span>`:`<span class="pill free">${nx?"prenotato dal "+fmt(nx.from):"libero"}</span>`}</span>
+   </div></button>`;
+}
+function viewArmadio(){
+  const counts={};S.items.forEach(i=>counts[i.category]=(counts[i.category]||0)+1);
+  const chips=[["tutti","Tutti"],...CATS.filter(([k])=>counts[k])].map(([k,l])=>`<button class="chip" data-act="cat" data-cat="${k}" aria-pressed="${S.cat===k}">${l}<span class="n">${k==="tutti"?S.items.length:counts[k]}</span></button>`).join("");
+  const list=S.items.filter(i=>S.cat==="tutti"||i.category===S.cat).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  if(!S.items.length)return `<div class="empty"><strong>L'armadio è ancora vuoto</strong>Carica il primo capo con il pulsante “+ Carica un capo”: foto, categoria e taglia. Le tue amiche lo vedranno subito.</div>`;
+  return `<div class="chips">${chips}</div><div class="grid">${list.map(card).join("")}</div>`;
+}
+function viewMiei(){
+  const mine=S.items.filter(i=>i.ownerId===S.myId);
+  if(!mine.length)return `<div class="empty"><strong>Non hai ancora caricato niente</strong>Aggiungi un capo: quando qualcuna lo prenota ricevi un'email e lo vedi anche qui.</div>`;
+  return `<div class="toolbar"><h2>I tuoi capi (${mine.length})</h2></div><div class="list">${mine.map(i=>{const up=upcoming(i.id);return `<div class="lrow"><img class="thumb" data-photo-img="${i.id}" alt=""><div class="txt"><b>${esc(i.name)}</b> <span class="size">${esc(i.size||"—")}</span><div class="sub">${up.length?up.map(b=>`<span class="date">${range(b.from,b.to)}</span> · ${esc(who(b.borrowerId))}`).join("<br>"):"Nessuna prenotazione in arrivo"}</div></div><button data-act="open" data-id="${i.id}">Apri</button></div>`}).join("")}</div>`;
+}
+function viewPren(){
+  const mine=S.bookings.filter(b=>b.borrowerId===S.myId&&b.to>=today()).sort((a,b)=>a.from.localeCompare(b.from));
+  if(!mine.length)return `<div class="empty"><strong>Nessuna prenotazione</strong>Sfoglia l'armadio, scegli un capo e prenotalo per una data almeno 24 ore da adesso.</div>`;
+  return `<div class="toolbar"><h2>Cosa hai prenotato</h2></div><div class="list">${mine.map(b=>{const i=S.items.find(x=>x.id===b.itemId);const mail=i?mailOf(i.ownerId):"";return `<div class="lrow"><img class="thumb" data-photo-img="${b.itemId}" alt=""><div class="txt"><b>${esc(i?.name||"Capo rimosso")}</b><div class="sub"><span class="date">${range(b.from,b.to)}</span> · da ${esc(i?who(i.ownerId):"?")}${mail?` · <span class="copy">${esc(mail)}</span>`:""}</div></div><button data-act="cancel" data-id="${b.id}">Annulla</button></div>`}).join("")}</div>`;
+}
+function viewNotif(){
+  const ns=[...S.notifs].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
+  const unread=ns.some(n=>!n.read);
+  if(!ns.length)return `<div class="empty"><strong>Nessuna notifica</strong>Quando un'amica prenota uno dei tuoi capi, ricevi un'email e lo vedi anche qui.</div>`;
+  return `<div class="toolbar"><h2>Notifiche</h2>${unread?`<button data-act="readall">Segna tutte come lette</button>`:""}</div><div class="list">${ns.map(n=>{const mail=mailOf(n.fromId);const verb=n.kind==="cancel"?"ha annullato la prenotazione di":"ha prenotato";return `<div class="lrow ${n.read?"":"unread"}"><img class="thumb" data-photo-img="${n.itemId}" alt=""><div class="txt"><b>${esc(who(n.fromId))}</b> ${verb} <b>${esc(n.itemName||"un tuo capo")}</b><div class="sub"><span class="date">${range(n.from,n.to)}</span>${mail?` · <span class="copy">${esc(mail)}</span>`:""}${n.message?`<br>“${esc(n.message)}”`:""}</div></div>${n.read?"":`<button data-act="read" data-id="${n.id}">Letta</button>`}</div>`}).join("")}</div>`;
+}
+
+/* ---------- photos ---------- */
+async function photo(id){
+  if(id in S.photos)return S.photos[id];
+  S.photos[id]=null;
+  try{const s=await S.db.doc("photos/"+id).get();S.photos[id]=s.exists?s.data().src:null}catch(e){S.photos[id]=null}
+  return S.photos[id];
+}
+function loadPhotos(){
+  document.querySelectorAll("[data-photo]").forEach(async el=>{const src=await photo(el.dataset.photo);if(src&&!el.querySelector("img"))el.innerHTML=`<img alt="" src="${src}">`});
+  document.querySelectorAll("[data-photo-img]").forEach(async el=>{const src=await photo(el.dataset.photoImg);if(src)el.src=src});
+}
+function compress(file){return new Promise((res,rej)=>{const r=new FileReader();r.onerror=rej;r.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error("img"));img.onload=()=>{let max=900,q=.78,out;for(let k=0;k<6;k++){const s=Math.min(1,max/Math.max(img.width,img.height));const c=document.createElement("canvas");c.width=Math.round(img.width*s);c.height=Math.round(img.height*s);c.getContext("2d").drawImage(img,0,0,c.width,c.height);out=c.toDataURL("image/jpeg",q);if(out.length<300000)break;max*=.8;q-=.06}res(out)};img.src=r.result};r.readAsDataURL(file)})}
+
+/* ---------- sheets ---------- */
+function openSheet(title,body){const sh=$("#sheet");sh.innerHTML=`<div class="overlay" data-act="close-bg"><div class="sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}"><div class="hd"><h3>${esc(title)}</h3><button class="ghost" data-act="close" aria-label="Chiudi">✕</button></div><div class="bd">${body}</div></div></div>`;sh.hidden=false}
+function closeSheet(){$("#sheet").hidden=true;$("#sheet").innerHTML=""}
+
+function sheetAdd(){
+  openSheet("Carica un capo",`<form id="fAdd" style="display:grid;gap:14px">
+   <label>Foto<input id="fPhoto" type="file" accept="image/*"></label>
+   <img id="fPrev" class="preview" alt="" hidden>
+   <label>Nome del capo<input id="fName" required maxlength="80" placeholder="Es. Abito lungo verde salvia"></label>
+   <div class="two"><label>Categoria<select id="fCat">${CATS.map(([k,l])=>`<option value="${k}">${l}</option>`).join("")}</select></label>
+   <label>Taglia<input id="fSize" maxlength="20" list="sizes" placeholder="M, 38, 42…"></label></div>
+   <datalist id="sizes"><option>XS</option><option>S</option><option>M</option><option>L</option><option>XL</option><option>Taglia unica</option><option>36</option><option>37</option><option>38</option><option>39</option><option>40</option><option>42</option><option>44</option></datalist>
+   <label>Note (facoltative)<textarea id="fDesc" rows="2" maxlength="300" placeholder="Es. lavare a mano, ideale per cerimonie"></textarea></label>
+   <div id="fMsg"></div>
+   <div class="actions"><button type="button" data-act="close">Annulla</button><button class="primary" type="submit">Carica</button></div></form>`);
+  let data=null;
+  $("#fPhoto").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{data=await compress(f);const p=$("#fPrev");p.src=data;p.hidden=false}catch(err){$("#fMsg").innerHTML=`<div class="err">Non riesco a leggere questa immagine. Prova con una foto JPG o PNG.</div>`}};
+  $("#fAdd").onsubmit=async e=>{e.preventDefault();const btn=e.submitter;btn.disabled=true;
+    try{const ref=S.db.collection("items").doc();
+      if(data)await S.db.doc("photos/"+ref.id).set({src:data,ownerId:S.myId});
+      await ref.set({ownerId:S.myId,name:$("#fName").value.trim(),category:$("#fCat").value,size:$("#fSize").value.trim(),description:$("#fDesc").value.trim(),hasPhoto:!!data,createdAt:Date.now()});
+      if(data)S.photos[ref.id]=data;closeSheet();toast("Capo caricato nell'armadio")
+    }catch(err){console.error(err);btn.disabled=false;$("#fMsg").innerHTML=`<div class="err">Caricamento non riuscito. Controlla la connessione e riprova.</div>`}};
+}
+
+function sheetItem(id){
+  const i=S.items.find(x=>x.id===id);if(!i)return;
+  const up=upcoming(id),mine=i.ownerId===S.myId,min=minBookDate();
+  openSheet(i.name,`<div class="detail"><img id="dImg" alt="${esc(i.name)}"><div style="display:grid;gap:10px;align-content:start;min-width:0">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="size">${esc(i.size||"taglia n.d.")}</span><span class="note">${esc(CAT[i.category]||"Altro")} · di ${esc(who(i.ownerId))}</span></div>
+    ${i.description?`<p style="margin:0">${esc(i.description)}</p>`:""}
+    <div><div class="note" style="margin-bottom:4px">Già prenotato</div>${up.length?`<div class="booked">${up.map(b=>`<span>${range(b.from,b.to)}</span>`).join("")}</div>`:`<span class="note">Nessuna data occupata</span>`}</div>
+   </div></div>
+   ${mine?`<div class="actions"><button data-act="delitem" data-id="${id}">Elimina questo capo</button></div>`:
+   `<form id="fBook" style="display:grid;gap:12px"><div class="two"><label>Dal<input id="bFrom" type="date" min="${min}" value="${min}" required></label><label>Al<input id="bTo" type="date" min="${min}" value="${min}" required></label></div>
+    <label>Messaggio per ${esc(who(i.ownerId))} (facoltativo)<input id="bMsg" maxlength="200" placeholder="Es. è per il matrimonio di Giulia, lo riporto lunedì"></label>
+    <p class="note" style="margin:0">Puoi prenotare solo date che iniziano almeno 24 ore da adesso (prima data disponibile: ${fmt(min)}).</p>
+    <div id="dMsg"></div><div class="actions"><button class="primary" type="submit">Prenota</button></div></form>`}`);
+  photo(id).then(src=>{const im=$("#dImg");if(im&&src)im.src=src});
+  const f=$("#fBook");if(!f)return;
+  $("#bFrom").onchange=()=>{if($("#bTo").value<$("#bFrom").value)$("#bTo").value=$("#bFrom").value;$("#bTo").min=$("#bFrom").value};
+  f.onsubmit=async e=>{e.preventDefault();const btn=e.submitter,msg=$("#dMsg");msg.innerHTML="";
+    const from=$("#bFrom").value,to=$("#bTo").value,note=$("#bMsg").value.trim();
+    if(from<minBookDate()){msg.innerHTML=`<div class="err">Troppo tardi per questa data: si prenota almeno 24 ore prima. La prima data possibile è ${fmt(minBookDate())}.</div>`;return}
+    if(to<from){msg.innerHTML=`<div class="err">La data di fine è prima di quella di inizio.</div>`;return}
+    btn.disabled=true;
+    const slotRef=S.db.doc("slots/"+id),bRef=S.db.collection("bookings").doc(),now=Date.now();
+    try{
+      await S.db.runTransaction(async tx=>{
+        const s=await tx.get(slotRef);
+        const ranges=(s.exists?(s.data().ranges||[]):[]).filter(r=>r.to>=today());
+        const c=ranges.find(r=>!(r.to<from||r.from>to));
+        if(c)throw {clash:c};
+        tx.set(slotRef,{ranges:[...ranges,{id:bRef.id,from,to}]});
+        tx.set(bRef,{itemId:id,ownerId:i.ownerId,borrowerId:S.myId,from,to,message:note,createdAt:now});
+      });
+      await S.db.collection("notifs").add({kind:"booking",toId:i.ownerId,fromId:S.myId,itemId:id,itemName:i.name,from,to,message:note,read:false,createdAt:now});
+      sendMail(i.ownerId,{azione:"ha prenotato",battuta:pick(BATTUTE_PREN),capo:i.name,dal:fmt(from),al:fmt(to),messaggio:note||"-"});
+      closeSheet();toast(`Prenotato! ${who(i.ownerId)} riceverà un'email`);
+    }catch(err){btn.disabled=false;msg.innerHTML=`<div class="err">${err?.clash?`Già prenotato ${range(err.clash.from,err.clash.to)}. Scegli altre date.`:"Prenotazione non riuscita. Riprova tra un momento."}</div>`;if(!err?.clash)console.error(err)}
+  };
+}
+
+function sheetProfile(){
+  const p=S.people[S.myId]||{};
+  openSheet("Il tuo profilo",`<form id="fProf" style="display:grid;gap:12px">
+   <label>Il tuo nome (come ti vedono le amiche)<input id="pNick" maxlength="40" value="${esc(p.nick||"")}" required></label>
+   <label>Email dove ricevere le notifiche<input id="pMail" type="email" maxlength="120" value="${esc(p.mail||"")}" required></label>
+   <p class="note" style="margin:0">Quando qualcuna prenota un tuo capo ti arriva un'email a questo indirizzo.</p>
+   <div class="actions"><button type="button" data-act="close">Annulla</button><button class="primary" type="submit">Salva</button></div></form>`);
+  $("#fProf").onsubmit=async e=>{e.preventDefault();try{await S.db.doc("people/"+S.myId).set({nick:$("#pNick").value.trim(),mail:$("#pMail").value.trim(),updatedAt:Date.now()},{merge:true});closeSheet();toast("Profilo salvato")}catch(err){toast("Salvataggio non riuscito")}};
+}
+
+function showOpenInBrowser(code){
+  openSheet("Apri il sito nel browser",`<p style="margin:0">Il login con Google non funziona dentro WhatsApp, Instagram o altre app. Apri il sito in <b>Safari</b> (iPhone) o <b>Chrome</b> (Android) e riprova.</p>
+   <ol style="margin:0;padding-left:20px;display:grid;gap:6px"><li>Tocca i <b>tre puntini</b> o l'icona della bussola in basso o in alto</li><li>Scegli <b>Apri in Safari</b> / <b>Apri nel browser</b></li><li>Premi di nuovo <b>Entra con Google</b></li></ol>
+   <p class="note" style="margin:0">Oppure copia il link e incollalo nel browser:</p>
+   <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span class="copy" id="siteLink">${esc(location.href.split("#")[0])}</span><button data-act="copylink">Copia link</button></div>
+   ${code?`<p class="note" style="margin:0">Codice errore: ${esc(code)}</p>`:""}`);
+}
+/* ---------- actions ---------- */
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-act],[data-tab]");if(!t)return;
+  if(t.dataset.tab){S.tab=t.dataset.tab;render();return}
+  const a=t.dataset.act;
+  if(a==="close-bg"&&e.target!==t)return;
+  if(a==="close"||a==="close-bg")return closeSheet();
+  if(a==="login"){const p=new firebase.auth.GoogleAuthProvider();p.setCustomParameters({prompt:"select_account"});
+    try{await S.auth.signInWithPopup(p)}
+    catch(err){const c=err?.code||"";
+      if(c==="auth/popup-closed-by-user"||c==="auth/cancelled-popup-request")return;
+      showOpenInBrowser(c)}
+    return}
+  if(a==="copylink"){const t=location.href.split("#")[0];try{await navigator.clipboard.writeText(t);toast("Link copiato")}catch(_){const r=document.createRange();r.selectNodeContents($("#siteLink"));const sel=getSelection();sel.removeAllRanges();sel.addRange(r);toast("Tieni premuto sul link per copiarlo")}return}
+  if(!S.u)return;
+  if(a==="logout"){S.auth.signOut();return}
+  if(a==="cat"){S.cat=t.dataset.cat;render()}
+  else if(a==="add")sheetAdd();
+  else if(a==="open")sheetItem(t.dataset.id);
+  else if(a==="profile")sheetProfile();
+  else if(a==="gonotif"){S.tab="notifiche";render()}
+  else if(a==="read"){t.disabled=true;try{await S.db.doc("notifs/"+t.dataset.id).update({read:true})}catch(_){t.disabled=false}}
+  else if(a==="readall"){t.disabled=true;for(const n of S.notifs.filter(n=>!n.read)){try{await S.db.doc("notifs/"+n.id).update({read:true})}catch(_){}}}
+  else if(a==="cancel"){
+    if(t.dataset.confirm!=="1"){t.dataset.confirm="1";t.textContent="Conferma annullamento";return}
+    const b=S.bookings.find(x=>x.id===t.dataset.id);if(!b)return;t.disabled=true;
+    try{const i=S.items.find(x=>x.id===b.itemId);const slotRef=S.db.doc("slots/"+b.itemId);
+      await S.db.runTransaction(async tx=>{const s=await tx.get(slotRef);if(s.exists)tx.set(slotRef,{ranges:(s.data().ranges||[]).filter(r=>r.id!==b.id)});tx.delete(S.db.doc("bookings/"+b.id))});
+      await S.db.collection("notifs").add({kind:"cancel",toId:b.ownerId,fromId:S.myId,itemId:b.itemId,itemName:i?.name||"",from:b.from,to:b.to,read:false,createdAt:Date.now()});
+      sendMail(b.ownerId,{azione:"ha annullato la prenotazione di",battuta:pick(BATTUTE_ANN),capo:i?.name||"un tuo capo",dal:fmt(b.from),al:fmt(b.to),messaggio:"-"});
+      toast("Prenotazione annullata")}catch(err){console.error(err);t.disabled=false;toast("Non riuscito, riprova")}
+  }
+  else if(a==="delitem"){
+    if(t.dataset.confirm!=="1"){t.dataset.confirm="1";t.textContent="Sì, elimina definitivamente";return}
+    const id=t.dataset.id;t.disabled=true;
+    try{for(const b of S.bookings.filter(b=>b.itemId===id))await S.db.doc("bookings/"+b.id).delete();await S.db.doc("slots/"+id).delete();await S.db.doc("photos/"+id).delete();await S.db.doc("items/"+id).delete();closeSheet();toast("Capo eliminato")}catch(err){console.error(err);t.disabled=false;toast("Eliminazione non riuscita")}
+  }
+});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#sheet").hidden)closeSheet()});
+
+/* ---------- avvio ---------- */
+function startData(){
+  S.subs.forEach(u=>u());S.subs=[];S.ready=false;
+  const seen=new Set();const done=k=>{seen.add(k);if(seen.size>=3)S.ready=true;render()};
+  const err=e=>{console.error(e);$("#main").innerHTML=`<div class="empty"><strong>Non riesco a leggere l'armadio</strong>Controlla che il database Firestore sia creato e che le regole permettano l'accesso a chi ha fatto login.</div>`};
+  S.subs.push(S.db.collection("items").onSnapshot(s=>{S.items=s.docs.map(d=>({id:d.id,...d.data()}));done("i")},err));
+  S.subs.push(S.db.collection("bookings").onSnapshot(s=>{S.bookings=s.docs.map(d=>({id:d.id,...d.data()}));done("b")},err));
+  S.subs.push(S.db.collection("people").onSnapshot(s=>{S.people=Object.fromEntries(s.docs.map(d=>[d.id,d.data()]));done("p")},err));
+  S.subs.push(S.db.collection("notifs").where("toId","==",S.myId).onSnapshot(s=>{S.notifs=s.docs.map(d=>({id:d.id,...d.data()}));render()},err));
+}
+if(!configured||!window.firebase){render()}
+else{
+  firebase.initializeApp(firebaseConfig);
+  S.db=firebase.firestore();S.auth=firebase.auth();
+  if(mailReady)emailjs.init({publicKey:EMAILJS.publicKey});
+  S.auth.onAuthStateChanged(async u=>{
+    S.u=u;S.myId=u?.uid||null;
+    if(!u){S.subs.forEach(x=>x());S.subs=[];render();return}
+    try{const ref=S.db.doc("people/"+u.uid);const s=await ref.get();
+      if(!s.exists)await ref.set({nick:(u.displayName||"").split(" ")[0],mail:u.email||"",updatedAt:Date.now()});
+    }catch(e){console.error(e)}
+    startData();
+  });
+}
+</script>
+</body>
+</html>
